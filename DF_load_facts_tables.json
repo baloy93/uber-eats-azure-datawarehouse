@@ -1,0 +1,351 @@
+{
+    "name": "df_facts_tables",
+    "properties": {
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_stg_orders",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcOrders"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_customers_dim",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srccustomers2"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_restaurant_dim",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcrestaurant2"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_dim_date2",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcdimdate"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_order_items_stg",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcOrderItems"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_dim_products",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcDimproduct"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_fact_orders",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcfactorders"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_fact_orders",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkOrders"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_fact_order_items",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkOrderitems"
+                }
+            ],
+            "transformations": [
+                {
+                    "name": "selOrders"
+                },
+                {
+                    "name": "derOrders"
+                },
+                {
+                    "name": "derOrders2"
+                },
+                {
+                    "name": "fltOrders"
+                },
+                {
+                    "name": "lookupcustomers"
+                },
+                {
+                    "name": "lookuprestaurant"
+                },
+                {
+                    "name": "fltValidkeys"
+                },
+                {
+                    "name": "selOrders2"
+                },
+                {
+                    "name": "selOrderItems"
+                },
+                {
+                    "name": "deriItems"
+                },
+                {
+                    "name": "fltItems"
+                },
+                {
+                    "name": "lookupProductkey"
+                },
+                {
+                    "name": "lookupOrders"
+                },
+                {
+                    "name": "select1"
+                },
+                {
+                    "name": "lookupDimDate"
+                }
+            ],
+            "scriptLines": [
+                "source(output(",
+                "          order_id as integer,",
+                "          customer_id as integer,",
+                "          restaurant_id as integer,",
+                "          order_date as string,",
+                "          delivery_date as string,",
+                "          total_amount as decimal(10,2),",
+                "          status as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcOrders",
+                "source(output(",
+                "          customer_key as integer,",
+                "          customer_id as integer,",
+                "          full_name as string,",
+                "          email as string,",
+                "          city as string,",
+                "          signup_date as date,",
+                "          created_date as timestamp",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srccustomers2",
+                "source(output(",
+                "          restaurant_key as integer,",
+                "          restaurant_id as integer,",
+                "          restaurant_name as string,",
+                "          cuisine as string,",
+                "          city as string,",
+                "          rating as decimal(2,1)",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcrestaurant2",
+                "source(output(",
+                "          date_key as integer,",
+                "          full_date as date,",
+                "          day as integer,",
+                "          month as integer,",
+                "          year as integer,",
+                "          weekday as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcdimdate",
+                "source(output(",
+                "          order_item_id as integer,",
+                "          order_id as integer,",
+                "          item_name as string,",
+                "          category as string,",
+                "          quantity as integer,",
+                "          unit_price as decimal(10,2)",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcOrderItems",
+                "source(output(",
+                "          product_key as integer,",
+                "          item_name as string,",
+                "          category as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcDimproduct",
+                "source(output(",
+                "          order_key as integer,",
+                "          order_id as integer,",
+                "          customer_key as integer,",
+                "          restaurant_key as integer,",
+                "          date_key as integer,",
+                "          total_amount as decimal(10,2),",
+                "          delivery_time as integer,",
+                "          delivery_flag as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcfactorders",
+                "srcOrders select(mapColumn(",
+                "          order_id,",
+                "          customer_id,",
+                "          restaurant_id,",
+                "          order_date,",
+                "          total_amount",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selOrders",
+                "selOrders derive(order_date_clean = coalesce(\r",
+                "    toDate(order_date, 'yyyy/MM/dd'),\r",
+                "    toDate(order_date, 'yyyy-MM-dd'),\r",
+                "    toDate(order_date, 'MM/dd/yyyy'),\r",
+                "    toDate(order_date, 'dd/MM/yyyy'),\r",
+                "    toDate(order_date, 'yyyyMMdd')\r",
+                "),",
+                "          delivery_time = toInteger(random(1) * 120)) ~> derOrders",
+                "derOrders derive(delivery_flag = iif(delivery_time < 20, 'Fast', iif(delivery_time <= 60, 'Normal', 'Late'))) ~> derOrders2",
+                "derOrders2 filter(total_amount > 0) ~> fltOrders",
+                "fltOrders, srccustomers2 lookup(selOrders@customer_id == srccustomers2@customer_id,",
+                "     multiple: false,",
+                "     pickup: 'first',",
+                "     asc(customer_key, true),",
+                "     broadcast: 'auto')~> lookupcustomers",
+                "lookupcustomers, srcrestaurant2 lookup(selOrders@restaurant_id == srcrestaurant2@restaurant_id,",
+                "     multiple: false,",
+                "     pickup: 'first',",
+                "     asc(restaurant_key, true),",
+                "     broadcast: 'auto')~> lookuprestaurant",
+                "lookupDimDate filter(isNull(customer_key) == false() && isNull(restaurant_key) == false() && isNull(date_key) == false()) ~> fltValidkeys",
+                "fltValidkeys select(mapColumn(",
+                "          order_id,",
+                "          total_amount,",
+                "          delivery_time,",
+                "          delivery_flag,",
+                "          customer_key,",
+                "          restaurant_key,",
+                "          date_key",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selOrders2",
+                "srcOrderItems select(mapColumn(",
+                "          order_id,",
+                "          item_name,",
+                "          category,",
+                "          quantity,",
+                "          unit_price",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selOrderItems",
+                "selOrderItems derive(line_total = quantity * unit_price) ~> deriItems",
+                "deriItems filter(quantity > 0 && unit_price > 0) ~> fltItems",
+                "fltItems, srcDimproduct lookup(selOrderItems@item_name == srcDimproduct@item_name",
+                "     && selOrderItems@category == srcDimproduct@category,",
+                "     multiple: false,",
+                "     pickup: 'first',",
+                "     asc(product_key, true),",
+                "     broadcast: 'auto')~> lookupProductkey",
+                "lookupProductkey, srcfactorders lookup(selOrderItems@order_id == srcfactorders@order_id,",
+                "     multiple: false,",
+                "     pickup: 'first',",
+                "     asc(customer_key, true),",
+                "     asc(restaurant_key, true),",
+                "     asc(date_key, true),",
+                "     broadcast: 'auto')~> lookupOrders",
+                "lookupOrders select(mapColumn(",
+                "          order_id = selOrderItems@order_id,",
+                "          quantity,",
+                "          unit_price,",
+                "          line_total,",
+                "          product_key,",
+                "          customer_key,",
+                "          restaurant_key,",
+                "          date_key",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> select1",
+                "lookuprestaurant, srcdimdate lookup(order_date_clean == full_date,",
+                "     multiple: false,",
+                "     pickup: 'first',",
+                "     asc(date_key, true),",
+                "     broadcast: 'auto')~> lookupDimDate",
+                "selOrders2 sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     input(",
+                "          order_key as integer,",
+                "          order_id as integer,",
+                "          customer_key as integer,",
+                "          restaurant_key as integer,",
+                "          date_key as integer,",
+                "          total_amount as decimal(10,2),",
+                "          delivery_time as integer,",
+                "          delivery_flag as string",
+                "     ),",
+                "     deletable:false,",
+                "     insertable:true,",
+                "     updateable:false,",
+                "     upsertable:false,",
+                "     format: 'table',",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     errorHandlingOption: 'stopOnFirstError',",
+                "     mapColumn(",
+                "          order_id,",
+                "          customer_key,",
+                "          restaurant_key,",
+                "          total_amount,",
+                "          delivery_time,",
+                "          delivery_flag,",
+                "          date_key",
+                "     )) ~> sinkOrders",
+                "select1 sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     input(",
+                "          order_item_key as integer,",
+                "          order_id as integer,",
+                "          product_key as integer,",
+                "          customer_key as integer,",
+                "          restaurant_key as integer,",
+                "          date_key as integer,",
+                "          quantity as integer,",
+                "          unit_price as decimal(10,2),",
+                "          line_total as decimal(10,2)",
+                "     ),",
+                "     deletable:false,",
+                "     insertable:true,",
+                "     updateable:false,",
+                "     upsertable:false,",
+                "     format: 'table',",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     errorHandlingOption: 'stopOnFirstError',",
+                "     mapColumn(",
+                "          order_id,",
+                "          product_key,",
+                "          customer_key,",
+                "          restaurant_key,",
+                "          date_key,",
+                "          quantity,",
+                "          unit_price,",
+                "          line_total",
+                "     )) ~> sinkOrderitems"
+            ]
+        }
+    }
+}

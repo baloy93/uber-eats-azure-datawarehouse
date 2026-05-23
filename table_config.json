@@ -1,0 +1,46 @@
+{
+    "tables": [
+        {
+            "source_file": "customers_raw.csv",
+            "staging_table": "stg_customers",
+            "schema": "ubereats_stg_schema",
+            "delimiter": ";",
+            "first_row_header": true
+        },
+        {
+            "source_file": "deliveries_raw.csv",
+            "staging_table": "stg_deliveries",
+            "schema": "ubereats_stg_schema",
+            "delimiter": ";",
+            "first_row_header": true
+        },
+        {
+            "source_file": "order_items_raw.csv",
+            "staging_table": "stg_order_items",
+            "schema": "ubereats_stg_schema",
+            "delimiter": ";",
+            "first_row_header": true
+        },
+        {
+            "source_file": "orders_raw.csv",
+            "staging_table": "stg_orders",
+            "schema": "ubereats_stg_schema",
+            "delimiter": ";",
+            "first_row_header": true
+        },
+        {
+            "source_file": "restaurants_raw.csv",
+            "staging_table": "stg_restaurants",
+            "schema": "ubereats_stg_schema",
+            "delimiter": ";",
+            "first_row_header": true
+        },
+        {
+            "source_file": "users_raw.csv",
+            "staging_table": "stg_users",
+            "schema": "ubereats_stg_schema",
+            "delimiter": ";",
+            "first_row_header": true
+        }
+    ]
+}

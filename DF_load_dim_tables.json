@@ -1,0 +1,414 @@
+{
+    "name": "df_dim_tables",
+    "properties": {
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_stg_customers",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srccustomers"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_restaurant_stg",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcrestaurants"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_stg_order_items",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcorderitems"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_stg_users",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcUsers"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_customers_dim",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkcustomers"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_restaurant_dim",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkrestaurant"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_products_dim",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkproducts"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_dim_users",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkUsers"
+                }
+            ],
+            "transformations": [
+                {
+                    "name": "selcustomers"
+                },
+                {
+                    "name": "dercustomers"
+                },
+                {
+                    "name": "fltcustomers"
+                },
+                {
+                    "name": "aggcustomers"
+                },
+                {
+                    "name": "skcustomers"
+                },
+                {
+                    "name": "selcustomers2"
+                },
+                {
+                    "name": "selrestaurants"
+                },
+                {
+                    "name": "derrestaurants"
+                },
+                {
+                    "name": "aggrestaurants"
+                },
+                {
+                    "name": "skrestaurant"
+                },
+                {
+                    "name": "selrestaurant2"
+                },
+                {
+                    "name": "selproducts"
+                },
+                {
+                    "name": "derproducts"
+                },
+                {
+                    "name": "skProduct"
+                },
+                {
+                    "name": "selproduct21"
+                },
+                {
+                    "name": "selUsers"
+                },
+                {
+                    "name": "derUsers"
+                },
+                {
+                    "name": "splitUsers"
+                },
+                {
+                    "name": "aggUsers"
+                },
+                {
+                    "name": "skUsers"
+                },
+                {
+                    "name": "selUsers2"
+                }
+            ],
+            "scriptLines": [
+                "source(output(",
+                "          customer_id as integer,",
+                "          first_name as string,",
+                "          last_name as string,",
+                "          email as string,",
+                "          signup_date as string,",
+                "          city as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srccustomers",
+                "source(output(",
+                "          restaurant_id as integer,",
+                "          restaurant_name as string,",
+                "          cuisine as string,",
+                "          city as string,",
+                "          rating as decimal(2,1)",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcrestaurants",
+                "source(output(",
+                "          order_item_id as integer,",
+                "          order_id as integer,",
+                "          item_name as string,",
+                "          category as string,",
+                "          quantity as integer,",
+                "          unit_price as decimal(10,2)",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcorderitems",
+                "source(output(",
+                "          user_id as integer,",
+                "          username as string,",
+                "          role as string,",
+                "          created_date as string,",
+                "          status as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcUsers",
+                "srccustomers select(mapColumn(",
+                "          customer_id,",
+                "          first_name,",
+                "          last_name,",
+                "          email,",
+                "          signup_date,",
+                "          city",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selcustomers",
+                "selcustomers derive(full_name = upper(first_name) + ' ' + upper(last_name),",
+                "          signup_date_clean = coalesce(\r",
+                "    toDate(signup_date, 'yyyy-MM-dd'),\r",
+                "    toDate(signup_date, 'yyyy/MM/dd'),\r",
+                "    toDate(signup_date, 'MM/dd/yyyy'),\r",
+                "    toDate(signup_date, 'MM-dd-yyyy'),\r",
+                "    toDate(signup_date, 'dd/MM/yyyy'),\r",
+                "    toDate(signup_date, 'dd-MM-yyyy'),\r",
+                "    toDate(signup_date, 'M/d/yyyy'),\r",
+                "    toDate(signup_date, 'd/M/yyyy'),\r",
+                "    toDate(signup_date, 'yyyyMMdd'),\r",
+                "    toDate(signup_date, 'ddMMMyyyy'),\r",
+                "    toDate(signup_date, 'yyyy-MM-dd HH:mm:ss'),\r",
+                "    toDate(signup_date, 'MM/dd/yyyy HH:mm:ss'),\r",
+                "    toDate(signup_date, 'dd/MM/yyyy HH:mm:ss')\r",
+                ")) ~> dercustomers",
+                "dercustomers filter(!isNull(customer_id) && !isNull(signup_date_clean)) ~> fltcustomers",
+                "fltcustomers aggregate(groupBy(customer_id),",
+                "     signup_date_clean = max(signup_date_clean),",
+                "          email = max(email),",
+                "          full_name = max(full_name),",
+                "          city = max(city)) ~> aggcustomers",
+                "aggcustomers keyGenerate(output(customer_key as long),",
+                "     startAt: 1L,",
+                "     stepValue: 1L) ~> skcustomers",
+                "skcustomers select(mapColumn(",
+                "          customer_id,",
+                "          signup_date = signup_date_clean,",
+                "          email,",
+                "          full_name,",
+                "          city",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selcustomers2",
+                "srcrestaurants select(mapColumn(",
+                "          restaurant_id,",
+                "          restaurant_name,",
+                "          cuisine,",
+                "          city,",
+                "          rating",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selrestaurants",
+                "selrestaurants derive(cuisine_clean = iif(lower(cuisine) == 'fastfood', 'Fast Food', cuisine),",
+                "          rating_clean = iif(isNull(rating), toDecimal(3.5), rating)) ~> derrestaurants",
+                "derrestaurants aggregate(groupBy(restaurant_id),",
+                "     rating_clean = max(rating_clean),",
+                "          cuisine_clean = max(cuisine_clean),",
+                "          city = max(city),",
+                "          restaurant_name = max(restaurant_name)) ~> aggrestaurants",
+                "aggrestaurants keyGenerate(output(restaurant_key as long),",
+                "     startAt: 1L,",
+                "     stepValue: 1L) ~> skrestaurant",
+                "skrestaurant select(mapColumn(",
+                "          restaurant_id,",
+                "          rating = rating_clean,",
+                "          cuisine = cuisine_clean,",
+                "          city,",
+                "          restaurant_name,",
+                "          restaurant_key",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selrestaurant2",
+                "srcorderitems select(mapColumn(",
+                "          item_name,",
+                "          category",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selproducts",
+                "selproducts derive(item_name_clean = concat(upper(substring(item_name,1,1)), lower(substring(item_name,2))),",
+                "          category_clean = concat(upper(substring(category,1,1)), lower(substring(category,2)))) ~> derproducts",
+                "derproducts keyGenerate(output(product_key as long),",
+                "     startAt: 1L,",
+                "     stepValue: 1L) ~> skProduct",
+                "skProduct select(mapColumn(",
+                "          item_name = item_name_clean,",
+                "          category = category_clean,",
+                "          product_key",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selproduct21",
+                "srcUsers select(mapColumn(",
+                "          user_id,",
+                "          username,",
+                "          role,",
+                "          created_date,",
+                "          status",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selUsers",
+                "selUsers derive(username_clean = upper(username),",
+                "          role_clean = concat(upper(substring(role,1,1)), lower(substring(role,2))),",
+                "          status_clean = concat(upper(substring(status,1,1)), lower(substring(status,2))),",
+                "          created_date_clean = coalesce(\r",
+                "    toDate(created_date, 'yyyy-MM-dd'),\r",
+                "    toDate(created_date, 'yyyy/MM/dd'),\r",
+                "    toDate(created_date, 'MM/dd/yyyy'),\r",
+                "    toDate(created_date, 'MM-dd-yyyy'),\r",
+                "    toDate(created_date, 'dd/MM/yyyy'),\r",
+                "    toDate(created_date, 'dd-MM-yyyy'),\r",
+                "    toDate(created_date, 'M/d/yyyy'),\r",
+                "    toDate(created_date, 'd/M/yyyy'),\r",
+                "    toDate(created_date, 'yyyyMMdd'),\r",
+                "    toDate(created_date, 'ddMMMyyyy'),\r",
+                "    toDate(created_date, 'yyyy-MM-dd HH:mm:ss'),\r",
+                "    toDate(created_date, 'MM/dd/yyyy HH:mm:ss'),\r",
+                "    toDate(created_date, 'dd/MM/yyyy HH:mm:ss')\r",
+                ")) ~> derUsers",
+                "derUsers split(isNull(created_date_clean) == false(),",
+                "     disjoint: false) ~> splitUsers@(validdates, invaliddates)",
+                "splitUsers@validdates aggregate(groupBy(user_id),",
+                "     created_date_clean = max(created_date_clean),",
+                "          status_clean = max(status_clean),",
+                "          role_clean = max(role_clean),",
+                "          username_clean = max(username_clean)) ~> aggUsers",
+                "aggUsers keyGenerate(output(user_key as long),",
+                "     startAt: 1L,",
+                "     stepValue: 1L) ~> skUsers",
+                "skUsers select(mapColumn(",
+                "          user_id,",
+                "          created_date = created_date_clean,",
+                "          status = status_clean,",
+                "          role = role_clean,",
+                "          username = username_clean,",
+                "          user_key",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selUsers2",
+                "selcustomers2 sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     input(",
+                "          customer_key as integer,",
+                "          customer_id as integer,",
+                "          full_name as string,",
+                "          email as string,",
+                "          city as string,",
+                "          signup_date as date,",
+                "          created_date as timestamp",
+                "     ),",
+                "     deletable:false,",
+                "     insertable:true,",
+                "     updateable:false,",
+                "     upsertable:false,",
+                "     format: 'table',",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     errorHandlingOption: 'stopOnFirstError',",
+                "     mapColumn(",
+                "          customer_id,",
+                "          full_name,",
+                "          email,",
+                "          city,",
+                "          signup_date",
+                "     )) ~> sinkcustomers",
+                "selrestaurant2 sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     input(",
+                "          restaurant_key as integer,",
+                "          restaurant_id as integer,",
+                "          restaurant_name as string,",
+                "          cuisine as string,",
+                "          city as string,",
+                "          rating as decimal(2,1)",
+                "     ),",
+                "     deletable:false,",
+                "     insertable:true,",
+                "     updateable:false,",
+                "     upsertable:false,",
+                "     format: 'table',",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     errorHandlingOption: 'stopOnFirstError',",
+                "     mapColumn(",
+                "          restaurant_id,",
+                "          restaurant_name,",
+                "          cuisine,",
+                "          city,",
+                "          rating",
+                "     )) ~> sinkrestaurant",
+                "selproduct21 sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     input(",
+                "          product_key as integer,",
+                "          item_name as string,",
+                "          category as string",
+                "     ),",
+                "     deletable:false,",
+                "     insertable:true,",
+                "     updateable:false,",
+                "     upsertable:false,",
+                "     format: 'table',",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     errorHandlingOption: 'stopOnFirstError',",
+                "     mapColumn(",
+                "          item_name,",
+                "          category",
+                "     )) ~> sinkproducts",
+                "selUsers2 sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     input(",
+                "          user_key as integer,",
+                "          user_id as integer,",
+                "          username as string,",
+                "          role as string,",
+                "          status as string,",
+                "          created_date as date",
+                "     ),",
+                "     deletable:false,",
+                "     insertable:true,",
+                "     updateable:false,",
+                "     upsertable:false,",
+                "     format: 'table',",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     errorHandlingOption: 'stopOnFirstError',",
+                "     mapColumn(",
+                "          user_id,",
+                "          username,",
+                "          role,",
+                "          status,",
+                "          created_date",
+                "     )) ~> sinkUsers"
+            ]
+        }
+    }
+}
