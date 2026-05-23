@@ -1,0 +1,11 @@
+delivery_id;order_id;driver_id;delivery_time_mins;status
+5001;1001;401;30;Delivered
+5002;1002;402;25;Delivered
+5003;1003;;45;Cancelled
+5004;1004;403;15;Delivered
+5005;1005;404;60;Pending
+5006;1006;401;5;Delivered
+5007;1007;402;300;Delivered
+5008;1008;403;20;Delivered
+5009;1009;404;35;Delivered
+5010;1010;401;40;Delivered
